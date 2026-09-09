@@ -62,6 +62,29 @@ func touchBillingFile(t *testing.T, dir string) {
 	}
 }
 
+func writeWidenCapture(t *testing.T, dir string) {
+	t.Helper()
+	capturesDir := filepath.Join(dir, "vault", "captures")
+	if err := os.MkdirAll(capturesDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	capture := `---
+tags: [capture]
+date: 2026-09-08
+status: active
+repo: example
+decisions: ["2026-07-22-billing"]
+attribution: human
+---
+
+## What
+Widened the retry window.
+`
+	if err := os.WriteFile(filepath.Join(capturesDir, "2026-09-08-widen.md"), []byte(capture), 0644); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestRun_BlocksOnUnaddressedGovernedPath(t *testing.T) {
 	dir := t.TempDir()
 	runGit(t, dir, "init", "-q")
@@ -100,25 +123,7 @@ func TestRun_PassesWhenAddressedByCapture(t *testing.T) {
 	base := gitRevParse(t, dir)
 
 	touchBillingFile(t, dir)
-	capturesDir := filepath.Join(dir, "vault", "captures")
-	if err := os.MkdirAll(capturesDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-	capture := `---
-tags: [capture]
-date: 2026-09-08
-status: active
-repo: example
-decisions: ["2026-07-22-billing"]
-attribution: human
----
-
-## What
-Widened the retry window.
-`
-	if err := os.WriteFile(filepath.Join(capturesDir, "2026-09-08-widen.md"), []byte(capture), 0644); err != nil {
-		t.Fatal(err)
-	}
+	writeWidenCapture(t, dir)
 	runGit(t, dir, "add", "-A")
 	runGit(t, dir, "commit", "-q", "-m", "touch billing, with capture")
 	head := gitRevParse(t, dir)
@@ -126,6 +131,41 @@ Widened the retry window.
 	code := Run([]string{"--repo", dir, "--base", base, "--head", head})
 	if code != 0 {
 		t.Fatalf("expected exit code 0 (pass), got %d", code)
+	}
+}
+
+// A capture merged in an earlier diff must not retroactively address a later
+// diff that touches the same governed path with no capture of its own.
+func TestRun_MergedCaptureDoesNotAddressLaterDiff(t *testing.T) {
+	dir := t.TempDir()
+	runGit(t, dir, "init", "-q")
+	runGit(t, dir, "config", "user.email", "test@example.com")
+	runGit(t, dir, "config", "user.name", "test")
+
+	writeBillingDecision(t, dir)
+	runGit(t, dir, "add", "-A")
+	runGit(t, dir, "commit", "-q", "-m", "base")
+	base := gitRevParse(t, dir)
+
+	touchBillingFile(t, dir)
+	writeWidenCapture(t, dir)
+	runGit(t, dir, "add", "-A")
+	runGit(t, dir, "commit", "-q", "-m", "touch billing, with capture")
+	withCapture := gitRevParse(t, dir)
+
+	if code := Run([]string{"--repo", dir, "--base", base, "--head", withCapture}); code != 0 {
+		t.Fatalf("expected exit code 0 (pass) when the capture is in the diff, got %d", code)
+	}
+
+	if err := os.WriteFile(filepath.Join(dir, "src", "billing", "webhook.go"), []byte("package billing // retry again"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	runGit(t, dir, "add", "-A")
+	runGit(t, dir, "commit", "-q", "-m", "touch billing again, no new capture")
+	later := gitRevParse(t, dir)
+
+	if code := Run([]string{"--repo", dir, "--base", withCapture, "--head", later}); code != 1 {
+		t.Fatalf("expected exit code 1 (blocked) when the only capture is already merged, got %d", code)
 	}
 }
 
