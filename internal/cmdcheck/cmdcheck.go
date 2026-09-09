@@ -47,7 +47,11 @@ func Run(args []string) int {
 		return 2
 	}
 
-	for _, c := range captures {
+	// Only captures added in this diff range count. A capture merged in an
+	// earlier diff is history, not an answer to the change under review.
+	diffCaptures := capturesInDiff(captures, changedFiles)
+
+	for _, c := range diffCaptures {
 		if problems := vault.ValidateCapture(c, decisions); len(problems) > 0 {
 			fmt.Fprintf(os.Stderr, "provenance check: malformed capture %s:\n", c.Path)
 			for _, p := range problems {
@@ -63,7 +67,7 @@ func Run(args []string) int {
 		return 2
 	}
 
-	result := gate.Check(changedFiles, decisions, captures, cfg)
+	result := gate.Check(changedFiles, decisions, diffCaptures, cfg)
 
 	fmt.Println(report.ToHuman(result, *base, *head))
 
@@ -83,4 +87,21 @@ func Run(args []string) int {
 		return 1
 	}
 	return 0
+}
+
+// capturesInDiff narrows the vault-wide capture set to only those fragments
+// whose file is part of this diff range. Capture.Path is already stored
+// repo-root-relative, in the same shape `git diff --name-only` emits.
+func capturesInDiff(captures []vault.Capture, changedFiles []string) []vault.Capture {
+	changed := make(map[string]bool, len(changedFiles))
+	for _, f := range changedFiles {
+		changed[f] = true
+	}
+	var inDiff []vault.Capture
+	for _, c := range captures {
+		if changed[c.Path] {
+			inDiff = append(inDiff, c)
+		}
+	}
+	return inDiff
 }
