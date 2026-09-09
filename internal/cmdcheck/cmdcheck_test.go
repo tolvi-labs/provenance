@@ -1,9 +1,11 @@
 package cmdcheck
 
 import (
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -167,6 +169,73 @@ func TestRun_MergedCaptureDoesNotAddressLaterDiff(t *testing.T) {
 	if code := Run([]string{"--repo", dir, "--base", withCapture, "--head", later}); code != 1 {
 		t.Fatalf("expected exit code 1 (blocked) when the only capture is already merged, got %d", code)
 	}
+}
+
+// A typo in x-governs must fail loud and closed, not silently leave the path
+// ungoverned.
+func TestRun_RejectsMalformedGovernsPattern(t *testing.T) {
+	dir := t.TempDir()
+	runGit(t, dir, "init", "-q")
+	runGit(t, dir, "config", "user.email", "test@example.com")
+	runGit(t, dir, "config", "user.name", "test")
+
+	decisionsDir := filepath.Join(dir, "vault", "decisions")
+	if err := os.MkdirAll(decisionsDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	decision := `---
+tags: [decision]
+date: 2026-07-22
+status: active
+repo: example
+x-governs: ["src/[billing/**"]
+---
+
+# Billing decision
+`
+	if err := os.WriteFile(filepath.Join(decisionsDir, "2026-07-22-billing.md"), []byte(decision), 0644); err != nil {
+		t.Fatal(err)
+	}
+	runGit(t, dir, "add", "-A")
+	runGit(t, dir, "commit", "-q", "-m", "base")
+	base := gitRevParse(t, dir)
+
+	touchBillingFile(t, dir)
+	runGit(t, dir, "add", "-A")
+	runGit(t, dir, "commit", "-q", "-m", "touch billing, no capture")
+	head := gitRevParse(t, dir)
+
+	var code int
+	stderr := captureStderr(t, func() {
+		code = Run([]string{"--repo", dir, "--base", base, "--head", head})
+	})
+	if code != 2 {
+		t.Fatalf("expected exit code 2 (execution error), got %d", code)
+	}
+	if !strings.Contains(stderr, "2026-07-22-billing") || !strings.Contains(stderr, "src/[billing/**") {
+		t.Errorf("stderr should name the decision and the bad pattern, got %q", stderr)
+	}
+}
+
+// captureStderr runs fn with os.Stderr redirected to a pipe and returns what
+// was written to it.
+func captureStderr(t *testing.T, fn func()) string {
+	t.Helper()
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	orig := os.Stderr
+	os.Stderr = w
+	fn()
+	os.Stderr = orig
+	w.Close()
+	out, err := io.ReadAll(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r.Close()
+	return string(out)
 }
 
 func TestRun_RejectsMissingBase(t *testing.T) {

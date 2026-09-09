@@ -67,6 +67,17 @@ func Run(args []string) int {
 		return 2
 	}
 
+	for _, d := range decisions {
+		if err := config.ValidatePatterns(d.XGoverns); err != nil {
+			fmt.Fprintf(os.Stderr, "provenance check: decision %s: x-governs: %v\n", d.Slug, err)
+			return 2
+		}
+	}
+	if err := config.ValidatePatterns(cfg.ExemptPaths); err != nil {
+		fmt.Fprintf(os.Stderr, "provenance check: exempt_paths: %v\n", err)
+		return 2
+	}
+
 	result := gate.Check(changedFiles, decisions, diffCaptures, cfg)
 
 	fmt.Println(report.ToHuman(result, *base, *head))

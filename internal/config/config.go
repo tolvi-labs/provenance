@@ -54,6 +54,19 @@ func Scaffold(repoDir string) error {
 	return os.WriteFile(path, []byte(template), 0644)
 }
 
+// ValidatePatterns reports the first syntactically invalid glob pattern in
+// patterns, if any. MatchesAny treats an unparseable pattern as a non-match,
+// so an unvalidated typo would silently leave a path ungoverned; callers
+// validate upfront and fail closed instead.
+func ValidatePatterns(patterns []string) error {
+	for _, pattern := range patterns {
+		if !doublestar.ValidatePattern(pattern) {
+			return fmt.Errorf("invalid glob pattern %q", pattern)
+		}
+	}
+	return nil
+}
+
 // MatchesAny reports whether path matches any of the given glob patterns.
 // Patterns support "**" for recursive matching (via doublestar).
 func MatchesAny(path string, patterns []string) bool {
