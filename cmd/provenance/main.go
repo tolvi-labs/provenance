@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
+
+	"github.com/tolvi-labs/provenance/internal/cmdcheck"
+	"github.com/tolvi-labs/provenance/internal/cmdinit"
 )
 
 const version = "0.1.0"
@@ -16,6 +19,10 @@ func main() {
 	switch os.Args[1] {
 	case "version":
 		fmt.Println("provenance " + version)
+	case "check":
+		os.Exit(cmdcheck.Run(os.Args[2:]))
+	case "init":
+		os.Exit(cmdinit.Run(os.Args[2:]))
 	case "-h", "--help", "help":
 		printUsage()
 	default:
@@ -28,9 +35,9 @@ func main() {
 func printUsage() {
 	fmt.Println(`provenance — the capture-enforcement gate at the code→push boundary
 
-  Usage:
-    provenance version
-    provenance check --base <ref> --head <ref> [--json-out <path>]   (not yet available)
-    provenance init                                                    (not yet available)
-    provenance hook install|uninstall                                  (not yet available)`)
+Usage:
+  provenance version
+  provenance check --base <ref> --head <ref> [--json-out <path>]
+  provenance init
+  provenance hook install|uninstall                                  (not yet available)`)
 }
