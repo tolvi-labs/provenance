@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/tolvi-labs/provenance/internal/cmdcheck"
+	"github.com/tolvi-labs/provenance/internal/cmdhook"
 	"github.com/tolvi-labs/provenance/internal/cmdinit"
 )
 
@@ -23,6 +24,8 @@ func main() {
 		os.Exit(cmdcheck.Run(os.Args[2:]))
 	case "init":
 		os.Exit(cmdinit.Run(os.Args[2:]))
+	case "hook":
+		os.Exit(cmdhook.Run(os.Args[2:]))
 	case "-h", "--help", "help":
 		printUsage()
 	default:
@@ -39,5 +42,5 @@ Usage:
   provenance version
   provenance check --base <ref> --head <ref> [--json-out <path>]
   provenance init
-  provenance hook install|uninstall                                  (not yet available)`)
+  provenance hook install|uninstall`)
 }
