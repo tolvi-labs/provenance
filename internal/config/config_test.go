@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -46,6 +47,19 @@ func TestScaffoldRefusesToOverwrite(t *testing.T) {
 	}
 	if err := Scaffold(dir); err == nil {
 		t.Fatal("expected second Scaffold to fail, it did not")
+	}
+}
+
+func TestValidatePatterns(t *testing.T) {
+	if err := ValidatePatterns([]string{"**/*.md", "docs/**", "src/billing/**"}); err != nil {
+		t.Fatalf("expected valid patterns to pass, got %v", err)
+	}
+	err := ValidatePatterns([]string{"docs/**", "src/[billing/**"})
+	if err == nil {
+		t.Fatal("expected a malformed pattern to return an error, it did not")
+	}
+	if !strings.Contains(err.Error(), "src/[billing/**") {
+		t.Errorf("error should name the offending pattern, got %q", err)
 	}
 }
 
