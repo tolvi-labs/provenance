@@ -34,7 +34,13 @@ jobs:
 
       - name: Post the report to the PR
         if: always()
-        run: gh pr comment "${{ github.event.pull_request.number }}" --body-file report.json
+        run: |
+          if [ -f report.json ]; then
+            gh pr comment "${{ github.event.pull_request.number }}" --body-file report.json
+          else
+            gh pr comment "${{ github.event.pull_request.number }}" \
+              --body "Provenance check produced no report — a malformed capture or an execution error stopped it before the report was written. See the job log."
+          fi
         env:
           GH_TOKEN: ${{ github.token }}
 
@@ -47,4 +53,4 @@ Wire this job as a required status check in branch protection — that's what ma
 
 ## Other CI providers
 
-The same three steps apply to any provider: check out with full history, run `provenance check --base <base> --head <head> --json-out report.json`, post `report.json` however that provider's PR/MR-comment mechanism works, and make the job a required check.
+The same three steps apply to any provider: check out with full history, run `provenance check --base <base> --head <head> --json-out report.json`, post `report.json` however that provider's PR/MR-comment mechanism works, and make the job a required check. Guard the post step on the file existing: a malformed capture or an execution error exits non-zero before `--json-out` is written, so an unguarded post fails with a confusing missing-file error exactly where the log matters most.
