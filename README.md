@@ -31,6 +31,26 @@ Most changes touch nothing Provenance cares about and pass with zero friction. W
 
 The gate never judges whether the reasoning is *good* — only whether it's *present and consistent with the diff*. Whether the "why" is insightful is the human PR reviewer's call, surfaced via the report Provenance posts to the PR.
 
+## Capture fragment format
+
+A capture lives at `vault/captures/YYYY-MM-DD-<slug>.md`. Its frontmatter carries `tags`, `date`, `status`, `repo`, `decisions` (the decision slugs this change operates under — at least one, each naming a real file in `vault/decisions/`), and `attribution`, which must be exactly one of `human`, `ai-assisted`, or `ai-and-edited`. Everything below the frontmatter is prose for the human reviewer; the gate does not read it.
+
+```markdown
+---
+tags: [capture]
+date: 2026-09-08
+status: active
+repo: example
+decisions: ["2026-07-22-billing"]
+attribution: human
+---
+
+## What
+Widened the retry window.
+```
+
+A capture only counts for the diff that adds it. One merged last month does not address the change you are pushing today.
+
 ## Core loop
 
 ```
