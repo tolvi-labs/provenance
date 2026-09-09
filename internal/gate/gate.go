@@ -1,6 +1,8 @@
 package gate
 
 import (
+	"sort"
+
 	"github.com/tolvi-labs/provenance/internal/config"
 	"github.com/tolvi-labs/provenance/internal/vault"
 )
@@ -96,6 +98,9 @@ func Check(changedFiles []string, decisions []vault.Decision, captures []vault.C
 	if len(blockedOn) > 0 {
 		status = "blocked"
 	}
+
+	sort.Strings(newDecisions)
+	sort.Slice(blockedOn, func(i, j int) bool { return blockedOn[i].Decision < blockedOn[j].Decision })
 
 	return Result{
 		Status:        status,
