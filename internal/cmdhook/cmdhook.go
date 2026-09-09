@@ -45,7 +45,8 @@ const zeroSHA = "0000000000000000000000000000000000000000"
 // runHook is invoked by the installed shim with git's pre-push stdin. It
 // runs a check per ref being pushed and blocks (non-zero) if any is
 // blocked. A brand-new branch (remote SHA all zeros) has nothing to diff
-// against yet and is skipped.
+// against yet and is skipped, as is a branch deletion (local SHA all
+// zeros).
 func runHook(stdin io.Reader) int {
 	raw, err := io.ReadAll(stdin)
 	if err != nil {
@@ -60,7 +61,7 @@ func runHook(stdin io.Reader) int {
 
 	blocked := false
 	for _, ref := range refs {
-		if ref.RemoteSHA == zeroSHA {
+		if ref.RemoteSHA == zeroSHA || ref.LocalSHA == zeroSHA {
 			continue
 		}
 		code := cmdcheck.Run([]string{"--base", ref.RemoteSHA, "--head", ref.LocalSHA})
