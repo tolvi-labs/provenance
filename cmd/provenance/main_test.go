@@ -26,6 +26,9 @@ func TestHelpMentionsUsage(t *testing.T) {
 	if !strings.Contains(string(out), "provenance — the capture-enforcement gate") {
 		t.Fatalf("expected usage banner, got: %s", out)
 	}
+	if !strings.Contains(string(out), "provenance check") {
+		t.Fatalf("expected usage to mention check, got: %s", out)
+	}
 }
 
 func TestUnknownCommandExitsNonZero(t *testing.T) {
