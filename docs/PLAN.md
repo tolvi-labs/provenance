@@ -11,7 +11,7 @@ The gate that makes vault capture a precondition for shipping: before a change c
 
 Provenance's prior hero (2026-07-08) was a vault-ranked impact / blast-radius report — a query over the durability record. Two problems retired it. It depended on a cross-language reachability engine, the hardest research problem in the suite, so Provenance could never ship until that worked. And a report "records the loop rather than improving it" — it enforces nothing, which is the exact gap the durability framing had already admitted. The reframe makes Provenance the gate that *enforces capture*, and moves the impact reasoning to Canary, which needs reachability anyway. The durability/attestation identity (who wrote this, why, on whose authority) survives — capture-enforcement is that identity expressed as a gate rather than a report. See [[2026-07-22-provenance-is-the-capture-enforcement-gate]].
 
-Earlier framings, for the record: the original acme-site v1 sold Provenance as EU AI Act Article 50 compliance for AI-generated code. That was retired on 2026-07-04 as factually unsupported (the Commission's draft Article 50 guidelines exempt source code at para. 64); see [[2026-07-04-provenance-durability-not-compliance]]. Compliance stays retired here.
+Earlier framings, for the record: an EU AI Act Article 50 compliance framing for AI-generated code was retired on 2026-07-04 as factually unsupported (the Commission's draft Article 50 guidelines exempt source code at para. 64); see [[2026-07-04-provenance-durability-not-compliance]]. Compliance stays retired here.
 
 ## What it is
 
@@ -47,7 +47,7 @@ Provenance is the record-gate beneath the daily loop: the vault captures decisio
 
 ## Immediate cleanup
 
-This plan and the build kickoff prompt were reconciled onto the capture-gate thesis on 2026-07-22; the retired impact-report hero and the stale "Guild is dead" premise are removed here (Guild was relaunched 2026-07-21 and shipped public 2026-07-22). The acme-site copy for Provenance still sells the old Article 50 framing and needs the same reconciliation before the page goes public.
+This plan and the build kickoff prompt were reconciled onto the capture-gate thesis on 2026-07-22; the retired impact-report hero and the stale "Guild is dead" premise are removed here (Guild was relaunched 2026-07-21 and shipped public 2026-07-22).
 
 ## Next step
 

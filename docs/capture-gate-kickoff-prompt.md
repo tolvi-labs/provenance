@@ -13,7 +13,7 @@ READ FIRST, then summarize what you found before designing:
 - vault/decisions/2026-07-04-provenance-durability-not-compliance.md         (Article 50 compliance is retired; do NOT resurrect it — the attestation identity survives)
 - vault/decisions/2026-07-08-chaos-receipt-wrong-use-case-churn-is-a-lens.md (why a gate must never attach consequence to reasoning QUALITY — only to capture presence)
 - docs/PLAN.md                                                               (go-forward plan)
-- The sibling Canary repo (~/tolvi-labs/canary): Provenance hands Canary declared provenance + governance; Canary owns impact reasoning and test selection.
+- The Canary repo: Provenance hands Canary declared provenance + governance; Canary owns impact reasoning and test selection.
 - The Tolvi and Tolvi Solo repos, to match stack, CLI conventions, and vault format.
 
 CONTEXT: Tolvi is a per-repo "decision vault" — plain-Markdown records of a team's decisions, rejected alternatives, and incidents-that-became-rules, retrievable by an agent. A correct capture for a change records what changed, why, on whose authority, and which decisions it touches (attribution: human / AI / AI-and-edited). Provenance is the gate that makes that capture a precondition for pushing.
